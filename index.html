@@ -32,15 +32,40 @@
             max-width: 600px; 
             padding: 30px; 
             text-align: center; 
+            position: relative;
         }
-        h1 { color: var(--primary); font-size: 2rem; margin-bottom: 25px; }
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        h1 { color: var(--primary); font-size: 1.8rem; margin: 0; }
+        .fullscreen-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            padding: 5px;
+            transition: transform 0.2s;
+        }
+        .fullscreen-btn:hover { transform: scale(1.1); }
+        .fullscreen-btn svg { width: 28px; height: 28px; }
         .score-board { 
             display: flex; 
             justify-content: space-between; 
+            align-items: center;
             font-weight: bold; 
             margin-bottom: 25px; 
             color: #7f8c8d;
             font-size: 1.1rem;
+        }
+        .question-meta {
+            font-size: 0.85rem;
+            color: #95a5a6;
+            background: #ecf0f1;
+            padding: 4px 10px;
+            border-radius: 6px;
         }
         .question { font-size: 1.4rem; margin-bottom: 25px; line-height: 1.6; font-weight: 700; color: #34495e;}
         .options { display: grid; gap: 15px; }
@@ -110,11 +135,21 @@
 </head>
 <body>
     <div class="quiz-container" id="quiz-container">
-        <h1>مسابقة الكتاب المقدس 📖</h1>
+        <div class="header-controls">
+            <h1>مسابقة الكتاب المقدس 📖</h1>
+            <button class="fullscreen-btn" onclick="toggleFullScreen()" title="ملء الشاشة">
+                <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                </svg>
+            </button>
+        </div>
+        
         <div class="score-board">
             <span id="question-count">السؤال: 1 / 50</span>
+            <span id="db-id" class="question-meta">ID: -</span>
             <span id="score-display">النقاط: 0</span>
         </div>
+        
         <div class="question" id="question-text">جاري تحميل السؤال...</div>
         <div class="options" id="options-container">
             <!-- Buttons dynamically added here -->
@@ -138,6 +173,18 @@
         let currentIndex = 0;
         let score = 0;
 
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`خطأ في تشغيل وضع ملء الشاشة: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -146,7 +193,6 @@
         }
 
         function startQuiz() {
-            // فلترة الأسئلة للمستوى المتوسط وعرضها بشكل عشوائي
             currentQuestions = quizData.filter(q => q.level === 'medium');
             shuffleArray(currentQuestions);
             currentIndex = 0;
@@ -160,6 +206,7 @@
         function loadQuestion() {
             const q = currentQuestions[currentIndex];
             document.getElementById('question-count').innerText = `السؤال: ${currentIndex + 1} / ${currentQuestions.length}`;
+            document.getElementById('db-id').innerText = `رقم السؤال المرجعي: ${q.id}`;
             document.getElementById('question-text').innerText = q.question;
             
             const optionsContainer = document.getElementById('options-container');
